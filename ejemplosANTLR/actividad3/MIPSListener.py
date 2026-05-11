@@ -1,0 +1,2 @@
+class MIPSListener(RaraLangListener):
+    pass

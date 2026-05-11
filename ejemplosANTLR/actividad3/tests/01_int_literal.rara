@@ -1,0 +1,5 @@
+# INT literal → li + print
+# Esperado: 42, 0, 100
+print 42
+print 0
+print 100
