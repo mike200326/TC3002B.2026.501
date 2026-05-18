@@ -1,0 +1,10 @@
+# IT1 - Caso: múltiples print seguidos, tipos mixtos
+# Esperado (cada valor en su propia línea):
+# 42
+# 255
+# 10
+# hola mundo
+print 42
+print [FF:16]
+print [1010:2]
+print "hola mundo"

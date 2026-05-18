@@ -1,0 +1,4 @@
+# IT1 - Caso: número en base 2 (binario)
+# [1010:2] = 10 en decimal
+# Esperado: 10
+print [1010:2]

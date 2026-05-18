@@ -1,0 +1,4 @@
+# IT1 - Caso: número en base 16 vs su equivalente decimal
+# Ambos deben imprimir 255
+print [FF:16]
+print 255

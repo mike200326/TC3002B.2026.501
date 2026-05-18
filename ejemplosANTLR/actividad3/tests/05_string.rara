@@ -1,0 +1,3 @@
+# IT1 - Caso: cadena de texto
+# Esperado: hola mundo
+print "hola mundo"
