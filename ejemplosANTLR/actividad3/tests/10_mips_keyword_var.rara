@@ -1,0 +1,12 @@
+# IT2 - Caso: Variable cuyo nombre sea una instrucción de MIPS (add, sub, div)
+# Esperado:
+# 50
+# 20
+# 10
+
+add <-- 50
+sub <-- 20
+div <-- 10
+print add
+print sub
+print div

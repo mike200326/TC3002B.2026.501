@@ -6,12 +6,14 @@ prog : stmt* EOF ;
 
 stmt
     : PRINT expr    #printStmt
+    | ID '<--' expr #assignStmt
     ;
 
 expr
     : INT           #int
     | BASED_NUMBER  #based
     | STRING        #string
+    | ID            #varExpr
     ;
 
 // ─── Keywords ─────────────────────────────────────────────────────────────────
@@ -23,6 +25,7 @@ PRINT : 'print' ;
 INT         : [0-9]+ ;
 BASED_NUMBER : '[' [0-9a-fA-F]+ ':' [0-9]+ ']' ;
 STRING      : '"' (~["\r\n])* '"' ;
+ID          : [a-zA-Z][a-zA-Z0-9_]* ;
 
 // ─── Infraestructura ──────────────────────────────────────────────────────────
 

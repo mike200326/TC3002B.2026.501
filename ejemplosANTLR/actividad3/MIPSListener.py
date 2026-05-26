@@ -26,6 +26,8 @@ class MIPSListener(RaraLangListener):
         self._val_stack: list[tuple] = []  # pila de descriptores de valor
         self._reg_idx: int = 0             # índice de registro temporal
         self._str_idx: int = 0             # índice de etiqueta de string
+        self._variables: set[str] = set()  # nombres de variables usadas
+        self._var_types: dict[str, str] = {}  # tipos de variables (int, str)
 
     # ─── Utilidades privadas ─────────────────────────────────────────────────
 
@@ -58,6 +60,17 @@ class MIPSListener(RaraLangListener):
         """Emite syscalls para imprimir una cadena y luego un salto de línea."""
         self._emit(
             f"la   $a0, {label}",
+            "li   $v0, 4",          # syscall 4 = print_string
+            "syscall",
+            "li   $a0, 10",         # ASCII '\n'
+            "li   $v0, 11",
+            "syscall",
+        )
+
+    def _emit_print_string_ref(self, reg: str) -> None:
+        """Emite syscalls para imprimir una cadena referenciada por dirección en un registro y luego un salto de línea."""
+        self._emit(
+            f"move $a0, {reg}",
             "li   $v0, 4",          # syscall 4 = print_string
             "syscall",
             "li   $a0, 10",         # ASCII '\n'
@@ -119,19 +132,62 @@ class MIPSListener(RaraLangListener):
             self._emit_print_int(val)
         elif kind == "str":
             self._emit_print_string(val)
+        elif kind == "str_ref":
+            self._emit_print_string_ref(val)
+
+    def exitAssignStmt(self, ctx) -> None:
+        """
+        Sentencia de asignación, ej: x <-- 10
+        El valor de la expresión está en la pila de valores.
+        """
+        var_name = ctx.ID().getText()
+        kind, val = self._val_stack.pop()
+        self._variables.add(var_name)
+        self._var_types[var_name] = kind
+
+        self._emit_comment(f"assign {var_name} <-- {val}")
+        if kind == "int":
+            self._emit(f"sw   {val}, var_{var_name}")
+        elif kind == "str":
+            reg = self._alloc_reg()
+            self._emit(f"la   {reg}, {val}")
+            self._emit(f"sw   {reg}, var_{var_name}")
+        elif kind == "str_ref":
+            self._emit(f"sw   {val}, var_{var_name}")
+
+    def exitVarExpr(self, ctx) -> None:
+        """
+        Variable como expresión: ID
+        Recupera el valor almacenado en la variable y lo deja en un registro.
+        """
+        var_name = ctx.ID().getText()
+        self._variables.add(var_name)
+
+        kind = self._var_types.get(var_name, "int")
+        reg = self._alloc_reg()
+
+        self._emit_comment(f"read var {var_name}")
+        self._emit(f"lw   {reg}, var_{var_name}")
+
+        if kind == "str" or kind == "str_ref":
+            self._val_stack.append(("str_ref", reg))
+        else:
+            self._val_stack.append(("int", reg))
 
     # ─── Salida ──────────────────────────────────────────────────────────────
 
     def output(self) -> str:
         """
         Ensambla el código MIPS completo:
-          .data  → strings declaradas
+          .data  → variables y strings declaradas
           .text  → instrucciones generadas + exit al final
         """
         lines: list[str] = []
 
         # Sección de datos
         lines.append(".data")
+        for var in sorted(self._variables):
+            lines.append(f"    var_{var}: .word 0")
         if self._data_lines:
             lines.extend(self._data_lines)
         lines.append("")

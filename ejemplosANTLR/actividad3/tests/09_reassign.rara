@@ -1,0 +1,9 @@
+# IT2 - Caso: Reasignar una variable y verificar que print muestra el nuevo valor
+# Esperado:
+# 100
+# 200
+
+var_x <-- 100
+print var_x
+var_x <-- 200
+print var_x

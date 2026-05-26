@@ -1,0 +1,4 @@
+# IT2 - Caso: Variable no inicializada / leída antes de asignar
+# Esperado: 0
+
+print z
